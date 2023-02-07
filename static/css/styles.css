@@ -1,0 +1,20 @@
+body {
+}
+
+::selection {
+  color: #175069;
+  background: #4dd3da;
+}
+
+.comments{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 1000px;
+}
+
+@media only screen and (max-width: 600px){
+    .comments{
+        max-width: 200px;
+    }
+}
