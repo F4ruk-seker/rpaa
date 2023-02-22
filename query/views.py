@@ -3,11 +3,12 @@ import pickle
 import pandas as pd
 
 from django.shortcuts import render
-from django.http import HttpResponse
 from django.views.generic import View
-from django.http import JsonResponse
 
 from .forms import ManyQueryForm
+from matplotlib import pyplot as plt
+from pages.models import MianPage
+import time
 
 # Create your views here.
 import warnings
@@ -18,8 +19,9 @@ analyzer = pickle.load(open(file_dict, 'rb'))
 
 
 class MainPage(View):
+
     def get(self,request):
-        return render(request,'index.html')
+        return render(request,'index.html',context={'page':MianPage.objects.first()})
 
     def post(self,request):
         text = request.POST.get('analizetext',None)
@@ -37,27 +39,22 @@ class ManyQuery(View):
 
 
     def post(self,request,*args,**kwargs):
-        result_type_list = [
-            {'result_name': 'GÜÇLÜ',
-             'counter': 0},
-            {'result_name': 'İÇTEN',
-             'counter': 0},
-            {'result_name': 'YETKİNLİK',
-             'counter': 0},
-            {'result_name': 'OLUMSUZ',
-             'counter': 0},
-            {'result_name': 'HEYECAN',
-             'counter': 0},
-        ]
+        progress_start_time = time.time()
+        result_type_list = {
+            'GÜÇLÜLÜK': 0,
+            'İÇTEN': 0,
+            'YETKİNLİK': 0,
+            'OLUMSUZ': 0,
+            'HEYECAN': 0,
+        }
         query_list = request.POST.getlist('query_list',None)
         RESULT_LIST = []
 
         if query_list:
-
             def counter_result(result):
-                for result_obj in result_type_list:
-                    if result_obj['result_name'] == result:
-                         result_obj['counter'] += 1
+                for result_name,result_counter in result_type_list.items():
+                    if result_name == result:
+                         result_type_list[result_name] += 1
 
 
             for query in json.loads(query_list[0]):
@@ -88,12 +85,15 @@ class ManyQuery(View):
         max_count = 0
         max_result_type = ""
 
-        for bit in result_type_list:
-            if bit["counter"] > max_count:
-                max_count = bit["counter"]
-                max_result_type = bit["result_name"]
-
+        for bit,count in result_type_list.items():
+            if count > max_count:
+                max_count = count
+                max_result_type = bit
+        progress_end_time = time.time()
         return render(request, 'many-query.html',
-                      context={'ManyQueryForm':ManyQueryForm,'result':RESULT_LIST,'result_count':result_type_list,'max_result':{'result_name':max_result_type,'counter':max_count}
+                      context={'ManyQueryForm':ManyQueryForm,'result':RESULT_LIST,'result_count':result_type_list,
+                               'max_result':{'result_name':max_result_type,'counter':max_count},
+                               'result_sum':sum(result_type_list.values()),
+                               'passing_time':progress_end_time-progress_start_time,
                                })
 

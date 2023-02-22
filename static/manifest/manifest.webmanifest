@@ -1,0 +1,6 @@
+{
+  "icons": [
+    { "src": "{% static 'icons/Ok.png' %}", "type": "image/png", "sizes": "192x192" },
+    { "src": "/Ok.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}
